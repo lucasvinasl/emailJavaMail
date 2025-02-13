@@ -1,8 +1,13 @@
 package com.br.emailJavaMail;
 
+import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.sql.DataSource;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -20,18 +25,23 @@ public class sendMail {
     private String remetente;
     private String assuntoEmail;
     private String corpoEmail;
+    private String pathAnexo;
 
-    public sendMail(List<String> destinatarios, String remetente, String assuntoEmail){
+    // Construtor com HTML
+    public sendMail(List<String> destinatarios, String remetente, String assuntoEmail, String pathAnexo){
         this.destinatarios = destinatarios;
         this.remetente = remetente;
         this.assuntoEmail = assuntoEmail;
+        this.pathAnexo = pathAnexo;
     }
 
-    public sendMail(List<String> destinatarios, String remetente, String assuntoEmail, String corpoEmail){
+    // Construtor sem HTML
+    public sendMail(List<String> destinatarios, String remetente, String assuntoEmail, String corpoEmail, String pathAnexo){
         this.destinatarios = destinatarios;
         this.remetente = remetente;
         this.assuntoEmail = assuntoEmail;
         this.corpoEmail = corpoEmail;
+        this.pathAnexo = pathAnexo;
     }
 
     public void carregaCredenciais() throws FileNotFoundException {
@@ -90,6 +100,7 @@ public class sendMail {
             mensagem.setRecipients(Message.RecipientType.TO, toUser);
             //Assunto do email
             mensagem.setSubject(this.assuntoEmail);
+
             //Corpo do email
             StringBuilder mensagemHTML = new StringBuilder();
             mensagemHTML.append("Mensagem Padrão - Java Mail Teste </br></br>");
@@ -98,11 +109,55 @@ public class sendMail {
 
             String stringHTML = mensagemHTML.toString();
 
+            /*
+
             if(opcaoHtml){
                 mensagem.setContent(stringHTML, "text/html; charset=utf-8");
             }else {
                 mensagem.setText(this.corpoEmail);
             }
+
+            */
+
+            // Corpo do Email com Anexo:
+            MimeBodyPart corpoMensagem = new MimeBodyPart();
+            if(opcaoHtml){
+                corpoMensagem.setContent(stringHTML, "text/html; charset=utf-8");
+            }else {
+                corpoMensagem.setText(this.corpoEmail);
+            }
+
+            // Criando o Anexo
+            if(!this.pathAnexo.isEmpty()){
+                String caminhoAnexo = pathAnexo.replace("\"", "");
+                MimeBodyPart anexo = new MimeBodyPart();
+                javax.activation.DataSource source = new javax.activation.FileDataSource(caminhoAnexo);
+                anexo.setDataHandler(new DataHandler(source));
+                //anexo.setFileName(caminhoAnexo.substring(caminhoAnexo.lastIndexOf("\\")+1));
+                anexo.setFileName(new java.io.File(caminhoAnexo).getName());
+
+                /*
+                FileDataSource: indica ao programa onde o arquivo está localizado no sistema.
+                DataHandler: fornece os dados do arquivo para o anexo.
+                 */
+
+                Multipart mp = new MimeMultipart();
+                mp.addBodyPart(corpoMensagem);
+                mp.addBodyPart(anexo);
+                mensagem.setContent(mp);
+                System.out.println("Anexo Criado!");
+
+                /*
+                Multipart mp = new MimeMultipart(); → Cria um "conteiner" para múltiplas partes.
+                addBodyPart(corpoMensagem) → Adiciona o corpo do e-mail.
+                addBodyPart(anexo) → Adiciona o anexo ao e-mail.
+                mensagem.setContent(mp) → Define o conteúdo final da mensagem como essa estrutura Multipart.
+                 */
+            }else {
+                System.out.println("E-mail sem Anexo.");
+            }
+
+
 
             // Enviar a mensagem
             Transport.send(mensagem);

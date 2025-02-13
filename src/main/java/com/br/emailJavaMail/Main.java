@@ -70,17 +70,19 @@ public class Main {
         System.out.println("Digite a mensagem do E-mail: ");
         String mensagem = scan.nextLine();
          */
+        System.out.println("Adicione algum anexo: ");
+        String pathAnexo = scan.nextLine();
 
         System.out.println("1 - Mensagem HTML / 2 - Mensagem de Texto: ");
-        String opcaomensagem = scan.next();
+        String opcaomensagem = scan.nextLine();
 
         if(opcaomensagem.equals("1")){
-            sendMail email = new sendMail(listaDestinatarios,remetente,assunto);
+            sendMail email = new sendMail(listaDestinatarios,remetente,assunto,pathAnexo);
             email.enviaEmail(true);
         }else{
             System.out.println("Digite a mensagem do E-mail: ");
             String mensagem = scan.nextLine();
-            sendMail email = new sendMail(listaDestinatarios,remetente,assunto,mensagem);
+            sendMail email = new sendMail(listaDestinatarios,remetente,assunto,mensagem,pathAnexo);
             email.enviaEmail(false);
         }
 
