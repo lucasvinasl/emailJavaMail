@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 public class sendMail {
@@ -25,10 +26,10 @@ public class sendMail {
     private String remetente;
     private String assuntoEmail;
     private String corpoEmail;
-    private String pathAnexo;
+    private List<String> pathAnexo;
 
     // Construtor com HTML
-    public sendMail(List<String> destinatarios, String remetente, String assuntoEmail, String pathAnexo){
+    public sendMail(List<String> destinatarios, String remetente, String assuntoEmail, List<String> pathAnexo){
         this.destinatarios = destinatarios;
         this.remetente = remetente;
         this.assuntoEmail = assuntoEmail;
@@ -36,7 +37,7 @@ public class sendMail {
     }
 
     // Construtor sem HTML
-    public sendMail(List<String> destinatarios, String remetente, String assuntoEmail, String corpoEmail, String pathAnexo){
+    public sendMail(List<String> destinatarios, String remetente, String assuntoEmail, String corpoEmail, List<String> pathAnexo){
         this.destinatarios = destinatarios;
         this.remetente = remetente;
         this.assuntoEmail = assuntoEmail;
@@ -101,7 +102,7 @@ public class sendMail {
             //Assunto do email
             mensagem.setSubject(this.assuntoEmail);
 
-            //Corpo do email
+            //Corpo do email com HTML
             StringBuilder mensagemHTML = new StringBuilder();
             mensagemHTML.append("Mensagem Padrão - Java Mail Teste </br></br>");
             mensagemHTML.append("<h2> Você está recebendo uma mensagem teste do Lucas </h2> </br></br>");
@@ -109,17 +110,6 @@ public class sendMail {
 
             String stringHTML = mensagemHTML.toString();
 
-            /*
-
-            if(opcaoHtml){
-                mensagem.setContent(stringHTML, "text/html; charset=utf-8");
-            }else {
-                mensagem.setText(this.corpoEmail);
-            }
-
-            */
-
-            // Corpo do Email com Anexo:
             MimeBodyPart corpoMensagem = new MimeBodyPart();
             if(opcaoHtml){
                 corpoMensagem.setContent(stringHTML, "text/html; charset=utf-8");
@@ -129,24 +119,32 @@ public class sendMail {
 
             // Criando o Anexo
             if(!this.pathAnexo.isEmpty()){
-                String caminhoAnexo = pathAnexo.replace("\"", "");
-                MimeBodyPart anexo = new MimeBodyPart();
-                javax.activation.DataSource source = new javax.activation.FileDataSource(caminhoAnexo);
-                anexo.setDataHandler(new DataHandler(source));
-                //anexo.setFileName(caminhoAnexo.substring(caminhoAnexo.lastIndexOf("\\")+1));
-                anexo.setFileName(new java.io.File(caminhoAnexo).getName());
+                List<MimeBodyPart> anexos = new ArrayList<>();
+                String caminhoAnexo;
+
+                for(int i = 0; i < pathAnexo.size(); i++){
+                    caminhoAnexo = pathAnexo.get(i).replace("\"", "");
+                    MimeBodyPart anexo = new MimeBodyPart();
+                    javax.activation.DataSource source = new javax.activation.FileDataSource(caminhoAnexo);
+                    anexo.setDataHandler(new DataHandler(source));
+                    //anexo.setFileName(caminhoAnexo.substring(caminhoAnexo.lastIndexOf("\\")+1));
+                    anexo.setFileName(new java.io.File(caminhoAnexo).getName());
+                    anexos.add(anexo);
+                }
 
                 /*
                 FileDataSource: indica ao programa onde o arquivo está localizado no sistema.
                 DataHandler: fornece os dados do arquivo para o anexo.
+                Precisei instalar dependecias para isso.
                  */
 
                 Multipart mp = new MimeMultipart();
                 mp.addBodyPart(corpoMensagem);
-                mp.addBodyPart(anexo);
+                for(int i = 0; i < anexos.size(); i++){
+                    mp.addBodyPart(anexos.get(i));
+                }
                 mensagem.setContent(mp);
                 System.out.println("Anexo Criado!");
-
                 /*
                 Multipart mp = new MimeMultipart(); → Cria um "conteiner" para múltiplas partes.
                 addBodyPart(corpoMensagem) → Adiciona o corpo do e-mail.

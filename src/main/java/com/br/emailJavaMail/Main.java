@@ -13,10 +13,12 @@ public class Main {
         Scanner scan = new Scanner(System.in);
 
         List<String> listaDestinatarios = new ArrayList<>();
+        List<String> listaAnexos = new ArrayList<>();
 
 
         boolean inputEmails = true;
         boolean validacaoDestinatarioPrincipal = true;
+        boolean contaAnexos = true;
         System.out.println("----- Sistema de Envio de E-mails -----");
 
         do{
@@ -70,19 +72,27 @@ public class Main {
         System.out.println("Digite a mensagem do E-mail: ");
         String mensagem = scan.nextLine();
          */
-        System.out.println("Adicione algum anexo: ");
-        String pathAnexo = scan.nextLine();
+        do{
+            System.out.println("Adicione algum anexo ou Digite telce Enter para prosseguir:");
+            String anexos = scan.nextLine();
+            if(anexos.isEmpty()){
+                contaAnexos = false;
+            }else {
+                listaAnexos.add(anexos);
+            }
+            System.out.println("-----------------");
+        }while (contaAnexos);
 
         System.out.println("1 - Mensagem HTML / 2 - Mensagem de Texto: ");
         String opcaomensagem = scan.nextLine();
 
         if(opcaomensagem.equals("1")){
-            sendMail email = new sendMail(listaDestinatarios,remetente,assunto,pathAnexo);
+            sendMail email = new sendMail(listaDestinatarios,remetente,assunto,listaAnexos);
             email.enviaEmail(true);
         }else{
             System.out.println("Digite a mensagem do E-mail: ");
             String mensagem = scan.nextLine();
-            sendMail email = new sendMail(listaDestinatarios,remetente,assunto,mensagem,pathAnexo);
+            sendMail email = new sendMail(listaDestinatarios,remetente,assunto,mensagem,listaAnexos);
             email.enviaEmail(false);
         }
 
